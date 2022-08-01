@@ -10,9 +10,9 @@
 
 ## Overview
 
-The task of the DAO contract can be summarized in 3 main functionalities
+The task of the `GGDao.sol` DAO contract can be summarized in 3 main functionalities
 
-- 1. Implement a treasury contract that buys NFTs
+- 1. Implement a treasury contract that buys NFTs (I used an interface `NFTMarketplace.sol` as the interfacing marketplace contract)
 - 2. Implement a voting system with signature votes
 - 3. Implement a proposal system that calls arbitrary functions.
 
@@ -75,13 +75,11 @@ interface NftMarketplace {
 - if a Proposal is approved, then master or admin can execute the proposal
   - if execution is successful, Porposal is marked as such
   - if execution is failed, we don't do anything in case Admins want to wait until we get more funds and then execute the proposal.
-- there are 2 ways to create proposal as member:
+- To create a proposal, use the following method:
   - `createProposal`
-  - `createNftProposal`- only need the nft contract address and nft id. Useses a lot of the functionality of `createProposal`
-- there are 2 ways to execute proposal as member:
+- To execute a proposal, use the following method:
   - `execute`
-  - `executeNftProposal`- only need the nft contract address and nft id. uses a lot of functionality from `execute` per spec requirements
-- per requirements I implemented `createNftProposal` & `executeNftProposal` and it uses the existing functions of `createProposal` and `execute`
+- If you want to propose or execute a NFT proposal, you can reference `buyNft` in your executions & propsals. You can reference the test `creating proposal and execute nftBuy with 1 eth` to see how this is done
 
 #### Other things added
 
