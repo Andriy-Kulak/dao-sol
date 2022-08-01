@@ -1,36 +1,22 @@
-## Resubmission Notes for Auditor 7.4.22
+# DAO Governance (Solidity Smart Contract w/ Hardhat)
 
-in this resubmission, I am focusing on fixing `H-1` and `L-1` vulnerability. `M-1` I didn't have time for. I added specific notes below so it's easier to review
+- this is my personal implementation of a DAO Governance contract that aims to collect rare NFTs, has a proposal system that can call arbitrary functions, and has cast by signature voting system.
 
-### Fix for [H-1] Proposal can be executed multiple times via reentrancy through `execute()`
+## Main Commands (to see tests)
 
-- Reference: https://github.com/0xMacro/student.andriy-kulak/blob/f249a1709ff8dcd2430e9f1c70e13e0df2f8f684/dao/staff-audit-dao.md?plain=1#L39
-- I moved the update of execution status to the top of the `execute()` function, which should prevent re-entrancy. If the exection fails, the exection success status will be reverted
-- This commit fixes this issue: https://github.com/0xMacro/student.andriy-kulak/pull/12/commits/5b849b284a2788d4a605546b6b8f3b20a5be86fc
+- `npm i`
+- `npx hardhat compile`
+- `npx hardhat test`
 
-### Fix for [L-1] - NFTProposal can't be executed if the price of NFT has gone down.
+## Overview
 
-- Reference: https://github.com/0xMacro/student.andriy-kulak/blob/5b849b284a2788d4a605546b6b8f3b20a5be86fc/dao/staff-audit-dao.md?plain=1#L82
-- in order to to fix this I have to refactor a bunch of code.
-- I added `buyNft` method which can only be called by the contract to get price and buy nft
-- Now, as a member you have to encode that method yourself and use the methods `propose` and `execute`
-- `proposeNftPurchase` and `executeNftPurchase` had to be deprecated. while they are useful, because members don't have to encode methods in order to try to buy nfts, they prevented me from buying nft that has decreased in price and therefore I removed them.
-- I also update the tests in `"NFT flow"` section to reflect updated functionality
-- This commit fixes this issue: https://github.com/0xMacro/student.andriy-kulak/pull/12/commits/2b86b6a8c2a0e3910e26a7a1ac2bf59233abeffb
-
-### Comment for [M-1] Members who joined in the same block of proposal creation can't vote
-
-- I didn't have time to work on this vuln this weekend so it is still here but I will look more into it next week
-
-## DAO Requirements
-
-Implement a DAO that aims to collect rare NFTs & does the following:
+The task of the DAO contract can be summarized in 3 main functionalities
 
 - 1. Implement a treasury contract that buys NFTs
 - 2. Implement a voting system with signature votes
 - 3. Implement a proposal system that calls arbitrary functions.
 
-#### Specifically:
+### Specific Features:
 
 - 4. Allows anyone to buy a membership for 1 ETH
   - (4a) each address can only buy one membership
@@ -102,33 +88,6 @@ interface NftMarketplace {
 - 94-98% coverage. the last few are hard to test & I didn't have time
 - `onERC721Received` added so we can accept NFTs
 
-## Design Exercise
+#### Updated Settings I use Personally
 
-- Per project specs there is no vote delegation; it's not possible for Alice to delegate her voting power to Bob, so that when Bob votes he does so with the voting power of both himself and Alice in a single transaction. This means for someone's vote to count, that person must sign and broadcast their own transaction every time. How would you design your contract to allow for non-transitive vote delegation?
-- What are some problems with implementing transitive vote delegation on-chain? (Transitive means: If A delegates to B, and B delegates to C, then C gains voting power from both A and B, while B has no voting power).
-
----
-
-I would store the delegate references in a mapping.
-
-- for the person that is voting, we will check the delegate mapping, and properly keep count of this.
-- my code will also have to reflect that one voteCast can have many votes. This will make re-tallying votes a little bit more confusing, because someone may say: Why does this person have 3 votes (per emitted event)? we will then make sure we emit good events for delegations so we can show that the 2 extra votes were delegated with sufficient proof
-- I would also allow the person to rescind their delegated votes or move it to someone else.
-- another option to consider is expiring delegation. although I think we can remind the user that their votes are delegated every 30 days and ask them if they want to get their votes back
-
-Transitive voting makes the whole problem of transparency a lot more complex. If there is a vote dispute and we have the situation mentioned `If A delegates to B, and B delegates to C, then C`, then someone may say that A doesn't like C and didn't want their votes to go to that person. Also re-tallying the votes would be painful :-( to trace all of this back.
-
-- also transative voting is gas intensive
-
----
-
-### Notes for Self (Andriy)
-
-additional things that I add for myself
-
-1. .vscode settings
-2. update eslint settings
-3. `npm i --save @openzeppelin/contracts`
-4. in solidity files, I can add `import "hardhat/console.sol";` and then use `console.log` like in javascript to test
-5. add `nodemon` and autorun `nodemon -x 'npx hardhat test' -w contracts -w test -e js,ts,sol`
-6. update hardhat.config.js to use sol version `0.8.9`
+- this repo is configured with hardhat template with prettier, eslint, vscode config, tsconfig. These are mostly pre-defined by hardhat template and make it very easy to start working and deploy contracts
